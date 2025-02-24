@@ -34,18 +34,18 @@ Company,Company Website,Software Category,Founded,Early Adopters/Customers,Raise
 
 Rules:
 1. Only include explicitly stated information
-2. Use empty string "" for missing data
+2. Use n/a for missing data
 3. Escape commas in fields with double quotes
 4. Maintain original capitalization
-5. For Additional Investors column, ALWAYS use semicolons (;) to separate multiple investors, never commas
+5. For Additional Investors column, ALWAYS use / to separate multiple investors, never commas (e.g. Ab / Cd / Ef)
 6. Keep exact amounts and dates as mentioned
 7. Output only the raw CSV data, no wrapper objects or extra formatting
 8. Use actual line breaks between rows, not \n escape sequences
+9. Format Founded date as Y-M (e.g. 2024-01)
 
 Example output format:
 Company,Company Website,Software Category,Founded,Early Adopters/Customers,Raised Amount,Round Type,Funding Date,Lead Investor,Additional Investors
-TechCorp,tech.com,AI,2020,"Meta; Google",$5M,Seed,2024-03-15,Sequoia,"YC; A16Z; Founders Fund"
-"""
+TechCorp,tech.com,AI,2020-03,"Meta, Google",$5M,Seed,2024-03-15,Sequoia,YC / A16Z / Founders Fund"""
 
 def create_directory(path):
     """Create directory if it doesn't exist"""
@@ -68,8 +68,10 @@ def analyze_content(content):
                 }
             ]
         )
-        # Simplify response extraction - the text= check is no longer needed with Claude 3
-        response = str(message.content)
+        # Handle content which may be a list of TextBlocks
+        content_block = message.content[0] if isinstance(message.content, list) else message.content
+        # Extract text from TextBlock
+        response = content_block.text if hasattr(content_block, 'text') else str(content_block)
         return response.replace('\\n', '\n').strip('"')
 
     except Exception as e:
